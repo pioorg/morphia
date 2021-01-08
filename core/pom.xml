@@ -29,7 +29,7 @@
             <plugin>
                 <groupId>com.antwerkz.github</groupId>
                 <artifactId>issues-maven-plugin</artifactId>
-                <version>1.0.3</version>
+                <version>1.1.3</version>
                 <executions>
                     <execution>
                         <id>issues</id>
@@ -41,7 +41,8 @@
                 </executions>
                 <configuration>
                     <repository>MorphiaOrg/morphia</repository>
-                    <javadocUrl>https://morphia.dev/${project.version}/javadoc/</javadocUrl>
+                    <docsUrl>https://morphia.dev/morphia/2.2</docsUrl>
+                    <javadocUrl>https://morphia.dev/morphia/2.2/javadoc</javadocUrl>
                 </configuration>
             </plugin>
             <plugin>
@@ -160,7 +161,7 @@
                     <doctitle>Morphia ${project.version}</doctitle>
                     <windowtitle>Morphia</windowtitle>
                     <tagletArtifacts>
-                        <tagletArtifact>1
+                        <tagletArtifact>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>util</artifactId>
                             <version>${project.version}</version>
@@ -207,6 +208,12 @@
             <artifactId>testng</artifactId>
             <version>7.3.0</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

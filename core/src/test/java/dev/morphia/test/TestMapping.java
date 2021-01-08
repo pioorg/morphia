@@ -48,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.UUID;
 
 import static dev.morphia.query.experimental.filters.Filters.eq;
 import static dev.morphia.query.experimental.filters.Filters.exists;
@@ -294,23 +293,19 @@ public class TestMapping extends TestBase {
 
     @Test
     public void testExternalClass() {
-        Datastore datastore = Morphia.createDatastore(TestBase.TEST_DB_NAME);
-        assertNotNull(datastore.getMapper().mapExternal(EmbeddedBuilder.builder(), UnannotatedEmbedded.class),
-            "Should be able to map explicitly passed class references");
+        getDs().getMapper().mapPackage(UnannotatedEmbedded.class.getPackageName());
 
-        datastore = Morphia.createDatastore(TestBase.TEST_DB_NAME);
-        datastore.getMapper().mapPackage(UnannotatedEmbedded.class.getPackageName());
-        assertTrue(datastore.getMapper().isMapped(HoldsUnannotated.class));
-        assertFalse(datastore.getMapper().isMapped(UnannotatedEmbedded.class),
+        assertTrue(getDs().getMapper().isMapped(HoldsUnannotated.class));
+        assertFalse(getDs().getMapper().isMapped(UnannotatedEmbedded.class),
             "Should not be able to map unannotated classes with mapPackage");
-        assertNotNull(datastore.getMapper().mapExternal(EmbeddedBuilder.builder(), UnannotatedEmbedded.class),
+        assertNotNull(getDs().getMapper().mapExternal(EmbeddedBuilder.builder(), UnannotatedEmbedded.class),
             "Should be able to map explicitly passed class references");
         HoldsUnannotated holdsUnannotated = new HoldsUnannotated();
         holdsUnannotated.embedded = new UnannotatedEmbedded();
         holdsUnannotated.embedded.number = 42L;
         holdsUnannotated.embedded.field = "Left";
-        datastore.save(holdsUnannotated);
-        HoldsUnannotated first = datastore.find(HoldsUnannotated.class).first();
+        getDs().save(holdsUnannotated);
+        HoldsUnannotated first = getDs().find(HoldsUnannotated.class).first();
         assertEquals(first, holdsUnannotated);
     }
 
@@ -665,35 +660,9 @@ public class TestMapping extends TestBase {
         assertThrows(ReferenceException.class, () -> {
             getMapper().map(Book.class, Author.class);
             final Book book = new Book();
-            book.author = new Author();
+            book.setAuthor(new Author());
             getDs().save(book);
         });
-    }
-
-    @Test
-    public void testUUID() {
-        getMapper().map(ContainsUUID.class);
-        final ContainsUUID uuid = new ContainsUUID();
-        final UUID before = uuid.uuid;
-        getDs().save(uuid);
-        final ContainsUUID loaded = getDs().find(ContainsUUID.class).iterator(new FindOptions().limit(1))
-                                           .next();
-        assertNotNull(loaded);
-        assertNotNull(loaded.id);
-        assertNotNull(loaded.uuid);
-        assertEquals(before, loaded.uuid);
-    }
-
-    @Test
-    public void testUuidId() {
-        getMapper().map(List.of(ContainsUuidId.class));
-        final ContainsUuidId uuidId = new ContainsUuidId();
-        final UUID before = uuidId.id;
-        getDs().save(uuidId);
-        final ContainsUuidId loaded = getDs().find(ContainsUuidId.class).filter(eq("_id", before)).first();
-        assertNotNull(loaded);
-        assertNotNull(loaded.id);
-        assertEquals(before, loaded.id);
     }
 
     protected void findFirst(Datastore datastore, Class<?> type, BlogImage expected) {
@@ -896,19 +865,6 @@ public class TestMapping extends TestBase {
         private final Map<String, Long> values = new HashMap<>();
         @Id
         private ObjectId id;
-    }
-
-    @Entity(useDiscriminator = false)
-    private static class ContainsUUID {
-        private final UUID uuid = UUID.randomUUID();
-        @Id
-        private ObjectId id;
-    }
-
-    @Entity(useDiscriminator = false)
-    private static class ContainsUuidId {
-        @Id
-        private final UUID id = UUID.randomUUID();
     }
 
     private static class Foo1 implements Foo {
